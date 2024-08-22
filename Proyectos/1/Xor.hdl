@@ -9,12 +9,12 @@
 CHIP Xor {
     IN a, b;
     OUT out;
-
+    
+    // xor(a, b) = (-a and b) or (a and -b) 
     PARTS:
-    Not(in=a, out=nota);
-    Not(in=b, out=notb);
-    And(a=a, b=notb, out=c);
-    And(a=b, b=nota, out=d);
-    Or(a=c, b=d, out=out);
-    //// Replace this comment with your code.
+    Not(in=a, out=notA);
+    Not(in=b, out=notB);
+    And(a=notA, b=b, out=notAAndB);
+    And(a=a, b=notB, out=aAndNotB);
+    Or(a=notAAndB, b=aAndNotB, out=out); 
 }
