@@ -21,11 +21,13 @@ Verificar el funcionamiento: Asegurarte de que los circuitos de memoria y contad
 
 2. Explique las principales diferencias entre la lógica aritmética y la lógica secuencial.
 
-# Lógica Aritmética: Se ocupa de operaciones aritméticas y lógicas directas entre datos. La ALU, por ejemplo, realiza operaciones como suma, resta, y 
+# Lógica Aritmética: 
+Se ocupa de operaciones aritméticas y lógicas directas entre datos. La ALU, por ejemplo, realiza operaciones como suma, resta, y 
 comparaciones, utilizando entradas y produciendo salidas en función de esas entradas. La lógica aritmética se basa en combinaciones de puertas lógicas 
 y no tiene memoria; cada operación es independiente de las anteriores.
 
-# Lógica Secuencial: A diferencia de la lógica aritmética, la lógica secuencial tiene en cuenta el estado anterior del sistema. Utiliza elementos de memoria, 
+# Lógica Secuencial: 
+A diferencia de la lógica aritmética, la lógica secuencial tiene en cuenta el estado anterior del sistema. Utiliza elementos de memoria, 
 como flip-flops y registros, para almacenar información y tener en cuenta el pasado. Los circuitos secuenciales pueden cambiar su comportamiento 
 en función del estado anterior, lo que les permite contar, almacenar datos, y ejecutar secuencias de operaciones.
 
@@ -34,7 +36,6 @@ Bonus: ¿Qué tipo de unidades aritmético lógicas existen?
 Las unidades aritmético-lógicas (ALU) se pueden clasificar según sus capacidades y funciones:
 
 # ALU Básica:
-https://hardzone.es/tutoriales/rendimiento/puertas-logicas-sistemas-combinacionales-secuenciales/
 Realiza operaciones aritméticas básicas (suma, resta) y operaciones lógicas (AND, OR, NOT).
 
 # ALU Compleja: 
