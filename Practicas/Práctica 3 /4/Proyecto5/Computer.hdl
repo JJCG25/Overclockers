@@ -1,0 +1,38 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/Computer.hdl
+/**
+ * The Hack computer, consisting of CPU, ROM and RAM.
+ * When reset = 0, the program stored in the ROM executes.
+ * When reset = 1, the program's execution restarts. 
+ * Thus, to start running the currently loaded program,
+ * set reset to 1, and then set it to 0. 
+ * From this point onwards, the user is at the mercy of the software.
+ * Depending on the program's code, and whether the code is correct,
+ * the screen may show some output, the user may be expected to enter
+ * some input using the keyboard, or the program may do some procerssing. 
+ */
+CHIP Computer {
+
+    IN reset;
+
+    PARTS:
+    // CPU: la unidad central de procesamiento que ejecuta el programa.
+    // Recibe la instrucción actual (instruction), el valor de la memoria (inM),
+    // y el reset para reiniciar la ejecución. Devuelve el valor a escribir en la memoria (outM),
+    // una señal para escribir en memoria (writeM), la dirección de memoria (addressM),
+    // y el contador de programa (pc).
+    CPU(instruction=instruction,reset=reset,inM=outMemo,outM=CPUoutM,writeM=wM,addressM=adM,pc=PC);
+
+    // Memoria: contiene la RAM (que incluye la pantalla y el teclado).
+    // Recibe el valor a escribir desde la CPU (in), la dirección de memoria (address),
+    // y la señal de carga (load) que indica cuándo escribir en memoria.
+    // Devuelve el valor almacenado en la dirección dada (out).
+    Memory(in=CPUoutM,load=wM,address=adM,out=outMemo);
+
+    // ROM32K: la memoria de solo lectura donde está almacenado el programa.
+    // Recibe la dirección del contador de programa (PC) y devuelve la instrucción
+    // correspondiente en esa dirección.
+    ROM32K(address=PC,out=instruction);
+}

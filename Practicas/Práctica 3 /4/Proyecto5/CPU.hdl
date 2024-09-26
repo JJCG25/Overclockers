@@ -1,0 +1,86 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Multiplexor para decidir qué valor se carga en el registro A (instrucción o ALUout)
+    Mux16(a=instruction,b=ALUout,sel=instruction[15],out=Ain);
+
+    // Negación del bit de instrucción[15] para diferenciar entre instrucción A y C
+    Not(in=instruction[15],out=notinstruction);
+
+    // Registro A 
+    // Si instruction[15] = 0, es una instrucción A y se debe cargar un valor en el registro A
+    Or(a=notinstruction,b=instruction[5],out=loadA); // Cargar A si es una instrucción A o se especifica en la instrucción C
+    ARegister(in=Ain,load=loadA,out=Aout,out[0..14]=addressM); // Guardar valor en A
+
+    // Multiplexor para determinar si el valor de la ALU es de A o de la memoria (M)
+    Mux16(a=Aout,b=inM,sel=instruction[12],out=AMout); // Si instruction[12] es 1, usar inM (memoria)
+
+    // Preparar para ALU: las siguientes líneas determinan qué operación hará la ALU
+    And(a=instruction[11],b=instruction[15],out=zx);  // Controlar zx (ALU borra x)
+    And(a=instruction[10],b=instruction[15],out=nx);  // Controlar nx (ALU niega x)
+    Or(a=instruction[9],b=notinstruction,out=zy);     // Controlar zy (ALU borra y)
+    Or(a=instruction[8],b=notinstruction,out=ny);     // Controlar ny (ALU niega y)
+    And(a=instruction[7],b=instruction[15],out=f);    // Controlar f (ALU suma o AND)
+    And(a=instruction[6],b=instruction[15],out=no);   // Controlar no (ALU niega salida)
+
+    // ALU: realiza las operaciones indicadas por los bits de la instrucción
+    ALU(x=Dout,y=AMout,zx=zx,nx=nx,zy=zy,ny=ny,f=f,no=no,out=outM,out=ALUout,zr=zero,ng=neg); 
+
+    // Controlar cuándo escribir en memoria (M)
+    And(a=instruction[15],b=instruction[3],out=writeM); // Si es una instrucción C y se especifica escribir en M
+
+    // Registro D, cargar cuando sea una instrucción C y esté especificado en los bits de destino
+    And(a=instruction[15],b=instruction[4],out=loadD); // Cargar D si el bit 4 de destino está activo
+    DRegister(in=ALUout,load=loadD,out=Dout); // Guardar el resultado de la ALU en D si está activado
+
+    // Preparar para salto condicional (evaluación de los resultados de la ALU)
+    // Obtener el resultado positivo o no
+    Or(a=zero,b=neg,out=notpos); // Si no es cero o es negativo, no es positivo
+    Not(in=notpos,out=pos); // Si no es negativo o cero, es positivo
+
+    // Controlar las condiciones de salto (JGT, JEQ, JLT, etc.)
+    And(a=instruction[0],b=pos,out=j3); // j3: salto si positivo
+    And(a=instruction[1],b=zero,out=j2); // j2: salto si es cero
+    And(a=instruction[2],b=neg,out=j1);  // j1: salto si negativo
+
+    // Combinación de las condiciones de salto
+    Or(a=j1,b=j2,out=j12);
+    Or(a=j12,b=j3,out=j123); // j123 se activa si alguna condición de salto es verdadera
+
+    // Controlar el salto (si j123 está activo y es una instrucción C)
+    And(a=j123,b=instruction[15],out=jump); // Si es una instrucción C y hay salto, activar jump
+
+    // Actualización del contador de programa (PC) si se produce un salto
+    PC(in=Aout,load=jump,reset=reset,inc=true,out[0..14]=pc); // El PC se actualiza al saltar o se incrementa en cada ciclo
+}
